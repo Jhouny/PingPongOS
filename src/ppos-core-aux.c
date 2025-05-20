@@ -2,16 +2,53 @@
 #include "ppos-core-globals.h"
 #include "ppos-disk-manager.h"
 
+// ****************************************************************************
+// Variáveis globais e includes necessários
+#include <ucontext.h>
+#include <signal.h>
+#include <sys/time.h>
+
+// Variáveis globais
+task_t *taskExec;      // ponteiro para a tarefa em execução
+task_t mainTask;       // tarefa main
+task_t dispatcherTask; // tarefa dispatcher
+task_t *readyQueue;    // fila de tarefas prontas
+int taskCount;         // contador de tarefas
+int taskNextId;        // próximo ID de tarefa disponível
 
 // ****************************************************************************
-// Adicione TUDO O QUE FOR NECESSARIO para realizar o seu trabalho
-// Coloque as suas modificações aqui, 
-// p.ex. includes, defines variáveis, 
-// estruturas e funções
-//
-// ****************************************************************************
 
+// Implementação das funções do gerenciador de tarefas
 
+void ppos_init() {
+    before_ppos_init();
+    
+    // desativa o buffer da saída padrão (stdout)
+    setvbuf(stdout, 0, _IONBF, 0);
+    
+    // inicializa as variáveis globais
+    taskCount = 0;
+    taskNextId = 0;
+    readyQueue = NULL;
+    
+    // cria a tarefa main
+    mainTask.id = taskNextId++;
+    mainTask.state = 'r';  // ready
+    mainTask.prev = mainTask.next = NULL;
+    mainTask.queue = NULL;
+    mainTask.joinQueue = NULL;
+    mainTask.exitCode = 0;
+    mainTask.awakeTime = 0;
+    mainTask.custom_data = NULL;
+    
+    // salva o contexto atual na tarefa main
+    getcontext(&mainTask.context);
+    
+    // configura a tarefa em execução como sendo a main
+    taskExec = &mainTask;
+    
+    after_ppos_init();
+}
 
 void before_ppos_init () {
     // put your customization here
@@ -400,4 +437,99 @@ int after_mqueue_msgs (mqueue_t *queue) {
     printf("\nmqueue_msgs - AFTER - [%d]", taskExec->id);
 #endif
     return 0;
+}
+
+int task_create(task_t *task, void (*start_func)(void *), void *arg) {
+    before_task_create(task);
+    
+    // obtém o contexto atual
+    getcontext(&task->context);
+    
+    // aloca a pilha da tarefa
+    char *stack = malloc(SIGSTKSZ);
+    if (stack == NULL) {
+        return -1;  // erro na criação da pilha
+    }
+    
+    // configura o contexto
+    task->context.uc_stack.ss_sp = stack;
+    task->context.uc_stack.ss_size = SIGSTKSZ;
+    task->context.uc_stack.ss_flags = 0;
+    task->context.uc_link = 0;
+    
+    // cria o contexto com a função a ser executada
+    makecontext(&task->context, (void*)(*start_func), 1, arg);
+    
+    // inicializa os campos da tarefa
+    task->id = taskNextId++;
+    task->state = 'r';  // ready
+    task->prev = task->next = NULL;
+    task->queue = NULL;
+    task->joinQueue = NULL;
+    task->exitCode = 0;
+    task->awakeTime = 0;
+    task->custom_data = NULL;
+    
+    // incrementa o contador de tarefas
+    taskCount++;
+    
+    // adiciona a tarefa na fila de prontas
+    if (task->id > 0) {  // não adiciona a main
+        queue_append((queue_t**)&readyQueue, (queue_t*)task);
+    }
+    
+    after_task_create(task);
+    return task->id;
+}
+
+int task_switch(task_t *task) {
+    before_task_switch(task);
+    
+    if (task == NULL) {
+        return -1;
+    }
+    
+    task_t *taskAnt = taskExec;
+    taskExec = task;
+    
+    // salva o contexto atual e muda para o contexto da nova tarefa
+    swapcontext(&taskAnt->context, &task->context);
+    
+    after_task_switch(task);
+    return 0;
+}
+
+void task_exit(int exitCode) {
+    before_task_exit();
+    
+    // salva o código de saída
+    taskExec->exitCode = exitCode;
+    
+    // marca a tarefa como terminada
+    taskExec->state = 't';  // terminated
+    
+    // acorda todas as tarefas que estavam esperando por esta
+    while (taskExec->joinQueue != NULL) {
+        task_t *task = taskExec->joinQueue;
+        taskExec->joinQueue = task->next;
+        task->state = 'r';  // ready
+        queue_append((queue_t**)&readyQueue, (queue_t*)task);
+    }
+    
+    // remove a tarefa da fila de prontas se ela estiver lá
+    if (taskExec != &mainTask) {
+        queue_remove((queue_t**)&readyQueue, (queue_t*)taskExec);
+        taskCount--;
+    }
+    
+    after_task_exit();
+    
+    // se não for a tarefa main, volta para a main
+    if (taskExec != &mainTask) {
+        task_switch(&mainTask);
+    }
+}
+
+int task_id() {
+    return taskExec->id;
 }
