@@ -1,1 +1,5 @@
 .vscode/
+
+# Removes build artifacts
+build/*
+bin/*
