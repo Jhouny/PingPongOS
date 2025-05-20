@@ -8,9 +8,19 @@
 // Coloque as suas modificações aqui, 
 // p.ex. includes, defines variáveis, 
 // estruturas e funções
-//
 // ****************************************************************************
 
+unsigned int _systemTime = 0; // Global system time in ticks
+
+task_t* scheduler() {
+    // put your customization here
+    return readyQueue;
+}
+
+unsigned int systime () {
+    // put your customization here
+    return _systemTime;
+}
 
 
 void before_ppos_init () {
@@ -25,7 +35,6 @@ void after_ppos_init () {
 #ifdef DEBUG
     printf("\ninit - AFTER");
 #endif
-    
 }
 
 void before_task_create (task_t *task ) {
@@ -40,7 +49,6 @@ void after_task_create (task_t *task ) {
 #ifdef DEBUG
     printf("\ntask_create - AFTER - [%d]", task->id);
 #endif
-    
 }
 
 void before_task_exit () {

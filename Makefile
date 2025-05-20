@@ -1,6 +1,6 @@
 # === Project Configuration ===
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -Iinclude
+CFLAGS = -Wall -Wextra -std=c11 -Iinclude -g #-DDEBUG
 
 # === Paths ===
 SRC_DIR = src
@@ -28,12 +28,12 @@ TARGET = $(BIN_DIR)/main
 all: $(TARGET)
 
 # Link step
-$(TARGET): $(OBJS) $(PRECOMPILED_OBJS)
+$(TARGET): $(OBJS) $(PRECOMPILED_OBJS) Makefile
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $(OBJS) $(PRECOMPILED_OBJS)
 
 # Compile .c -> .o
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c Makefile
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
