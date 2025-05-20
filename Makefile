@@ -1,37 +1,43 @@
-# Compiler and flags
+# === Project Configuration ===
 CC = gcc
-CFLAGS = -Wall -Wextra -O2
+CFLAGS = -Wall -Wextra -std=c11 -Iinclude
 
-# Source and object files
-SRC = main.c utils.c
-OBJ = $(SRC:.c=.o)
-EXEC = my_program
+# === Paths ===
+SRC_DIR = src
+OBJ_DIR = build
+BIN_DIR = bin
 
-# Test files
-TEST_SRC = test.c utils.c
-TEST_EXEC = test_program
+# === Files ===
+# C source files to compile
+SRCS = src/pingpong-preempcao.c \
+	   src/ppos-core-aux.c
 
-.PHONY: all clean test
+# Corresponding .o files
+OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
-# Default target
-all: $(EXEC)
+# Precompiled object files (never touched)
+PRECOMPILED_OBJS = obj/ppos-all.o \
+				   obj/queue.o
 
-# Link the executable
-$(EXEC): $(OBJ)
+# Output executable
+TARGET = $(BIN_DIR)/main
+
+# === Rules ===
+.PHONY: all clean
+
+all: $(TARGET)
+
+# Link step
+$(TARGET): $(OBJS) $(PRECOMPILED_OBJS)
+	@mkdir -p $(BIN_DIR)
 	$(CC) $(CFLAGS) -o $@ $^
 
-# Compile source files into object files
-%.o: %.c
+# Compile .c -> .o
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Run the test
-test: $(TEST_EXEC)
-	./$(TEST_EXEC)
-
-# Build test executable
-$(TEST_EXEC): $(TEST_SRC:.c=.o)
-	$(CC) $(CFLAGS) -o $@ $^
-
-# Clean build artifacts
+# Clean compiled (but NOT precompiled) files
 clean:
-	rm -f $(OBJ) $(EXEC) $(TEST_EXEC) *.o
+	rm -f $(OBJ_DIR)/*.o
+	rm -f $(TARGET)
