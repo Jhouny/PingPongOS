@@ -27,9 +27,17 @@ typedef struct task_t
    void* custom_data; // internal data - do not modify!
 
    // ... (outros/novos campos deve ser adicionados APOS esse comentario)
-
-
 } task_t ;
+
+#define MAX_TASKS 1000
+
+typedef struct {
+    unsigned int start_time;
+    unsigned int end_time;
+    unsigned int processor_time;
+    unsigned int activations;
+    unsigned int last_proc_start;
+} task_metrics_t;
 
 // estrutura que define um semáforo
 typedef struct {
