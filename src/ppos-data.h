@@ -28,6 +28,11 @@ typedef struct task_t
 
    // ... (outros/novos campos deve ser adicionados APOS esse comentario)
 
+   unsigned int start_time;        // tempo de criação
+   unsigned int end_time;          // tempo de término
+   unsigned int processor_time;    // tempo total de processador
+   unsigned int activations;       // número de ativações
+   unsigned int last_proc_start;   // início da fatia de processador atual
 
 } task_t ;
 
