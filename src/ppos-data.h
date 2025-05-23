@@ -18,8 +18,7 @@ typedef int bool;
 
 
 // Estrutura que define um Task Control Block (TCB)
-typedef struct task_t
-{
+typedef struct task_t {
     struct task_t *prev, *next ;	// ponteiros para usar em filas
     int id ;				        // identificador da tarefa
     ucontext_t context ;            // contexto armazenado da tarefa
@@ -33,9 +32,9 @@ typedef struct task_t
     void* custom_data; // internal data - do not modify!
     
     // ... (outros/novos campos deve ser adicionados APOS esse comentario)
-    int prio;               // prioridade estática da tarefa
+    int prio;           // prioridade estática da tarefa
     int prioDyn;        // prioridade dinâmica da tarefa
-    bool running;
+    bool systemTask;    // indica se a tarefa é do sistema (0 = tarefa de usuário, 1 = tarefa do sistema)
 } task_t ;
 
 // estrutura que define um semáforo

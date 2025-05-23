@@ -9,7 +9,7 @@ BIN_DIR = bin
 
 # === Files ===
 # C source files to compile
-SRCS = src/pingpong-scheduler.c \
+SRCS = src/pingpong-preempcao.c \
 	   src/ppos-core-aux.c
 
 # Corresponding .o files

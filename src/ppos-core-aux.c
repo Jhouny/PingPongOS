@@ -9,8 +9,29 @@
 // p.ex. includes, defines variáveis, 
 // estruturas e funções
 // ****************************************************************************
+#include <signal.h>
+#include <sys/time.h>
+
+struct sigaction action ;
+struct itimerval timer ;
+
+const unsigned int max_quantum = 20;     // Quantum time in ticks
+unsigned int quantum = max_quantum;      // Quantum time in milliseconds
 unsigned int _systemTime = 0;   // Global system time in ticks
-unsigned int prio_alpha = -1;    // Priority increment value
+unsigned int prio_alpha = -1;   // Priority increment value
+
+// Tick handler
+void tick_handler (int signum) {
+    _systemTime++; // Increment the system time
+    quantum--;
+    taskExec->awakeTime++; // Increment the awake time of the current task
+    if (quantum == 0) {
+        quantum = max_quantum; // Reset the quantum
+        if (!(taskExec->systemTask)) {  // If the current task is not a system task
+            task_yield(); // Yield the current task
+        }
+    }
+}
 
 // Function to get the sign of a number
 // Returns 1 if positive, -1 if negative, and 0 if zero
@@ -23,24 +44,22 @@ task_t* scheduler() {
     task_t* highestPriorityTask = NULL;
     task_t* currTask = readyQueue;       // Task to be analyzed
     task_t* startTask = readyQueue;         // Start of the queue
-    task_t* prevRun = NULL;                 // Previous running task
 
     if (currTask == taskMain) {
         return taskMain; // If the main task is in the queue, return it
     }
 
-    // Iterate over the ready queue and increase the dynamic priority of all tasks
+    // Iterate over the ready queue and increase the dynamic priority of all tasks 
+    // as well as find the task with the highest priority (smallest prioDyn)
     do {
         if (currTask->id >= 2) {
             currTask->prioDyn += prio_alpha;
             
             // Truncate the dynamic priority to the defined range
-            if (abs(currTask->prioDyn) > 20) { 
-                currTask->prioDyn = sign(currTask->prioDyn) * 20; 
-            }
+            if (abs(currTask->prioDyn) > 20) { currTask->prioDyn = sign(currTask->prioDyn) * 20; }
         }
 
-        // Find the task with the highest priority (smallest prioDyn)
+        // Update the highest priority task
         if (highestPriorityTask == NULL || currTask->prioDyn <= highestPriorityTask->prioDyn) {
             highestPriorityTask = currTask;
         }
@@ -49,7 +68,6 @@ task_t* scheduler() {
     } while (currTask != startTask);
 
     highestPriorityTask->prioDyn = highestPriorityTask->prio; // Reset the dynamic priority of the highest priority task
-    highestPriorityTask->running = TRUE; // Set the running flag to true
 
     return highestPriorityTask;
 }
@@ -97,6 +115,25 @@ void after_ppos_init () {
 #ifdef DEBUG
     printf("\ninit - AFTER");
 #endif
+    // Configure the timer and signal handler
+    action.sa_handler = tick_handler;
+    sigemptyset (&action.sa_mask);
+    if (sigaction (SIGALRM, &action, NULL) < 0) {
+        perror ("Sigaction error: ");
+        exit (1);
+    }
+
+    // Set the timer to trigger every 1 millisecond
+    timer.it_value.tv_sec = 0;
+    timer.it_value.tv_usec = 1000;
+    timer.it_interval.tv_sec = 0;
+    timer.it_interval.tv_usec = 1000;
+
+    // Set the timer to ITIMER_REAL
+    if (setitimer (ITIMER_REAL, &timer, NULL) < 0) {
+        perror ("Setitimer error: ");
+        exit (1);
+    }
 }
 
 void before_task_create (task_t *task ) {
@@ -111,7 +148,7 @@ void after_task_create (task_t *task ) {
 #endif
     task->prio = 0; // Set the default static priority to 0
     task->prioDyn = task->prio; // Set the dynamic priority to the static one
-    task->running = FALSE; // Set the running flag to false
+    task->systemTask = 0; // Set the task as a user task
 }
 
 void before_task_exit () {
