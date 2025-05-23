@@ -21,35 +21,34 @@ int sign(int x) {
 task_t* scheduler() {
     // Iterate over the ready queue and find the task with the highest priority and increment all non-executing tasks' priorities
     task_t* highestPriorityTask = NULL;
-    task_t* currentTask = readyQueue;       // Task to be analyzed
+    task_t* currTask = readyQueue;       // Task to be analyzed
     task_t* startTask = readyQueue;         // Start of the queue
     task_t* prevRun = NULL;                 // Previous running task
 
-    if (currentTask == taskMain) {
+    if (currTask == taskMain) {
         return taskMain; // If the main task is in the queue, return it
     }
 
     // Iterate over the ready queue and increase the dynamic priority of all tasks
     do {
-        if (currentTask->id >= 2) {
-            currentTask->prioDynamic += prio_alpha;
-            // printf("\n\tIncrementing prio of task %d: Dynamic Priority: %d\n", currentTask->id, currentTask->prioDynamic);
-            if (currentTask->prioDynamic > 20) {
-                currentTask->prioDynamic = 20;
-            } else if (currentTask->prioDynamic < -20) {
-                currentTask->prioDynamic = -20;
+        if (currTask->id >= 2) {
+            currTask->prioDyn += prio_alpha;
+            
+            // Truncate the dynamic priority to the defined range
+            if (abs(currTask->prioDyn) > 20) { 
+                currTask->prioDyn = sign(currTask->prioDyn) * 20; 
             }
         }
 
-        // Find the task with the highest priority (smallest prioDynamic)
-        if (highestPriorityTask == NULL || currentTask->prioDynamic <= highestPriorityTask->prioDynamic) {
-            highestPriorityTask = currentTask;
+        // Find the task with the highest priority (smallest prioDyn)
+        if (highestPriorityTask == NULL || currTask->prioDyn <= highestPriorityTask->prioDyn) {
+            highestPriorityTask = currTask;
         }
 
-        currentTask = currentTask->next;
-    } while (currentTask != startTask);
+        currTask = currTask->next;
+    } while (currTask != startTask);
 
-    highestPriorityTask->prioDynamic = highestPriorityTask->prio; // Reset the dynamic priority of the highest priority task
+    highestPriorityTask->prioDyn = highestPriorityTask->prio; // Reset the dynamic priority of the highest priority task
     highestPriorityTask->running = TRUE; // Set the running flag to true
 
     return highestPriorityTask;
@@ -72,7 +71,7 @@ void task_setprio (task_t *task, int prio) {
     if (abs(prio) > 20) { prio = sign(prio) * 20; }
     
     task->prio = prio;
-    task->prioDynamic = task->prio; // Set the dynamic priority to the static one
+    task->prioDyn = task->prio; // Set the dynamic priority to the static one
 }
 
 int task_getprio (task_t *task) {
@@ -111,7 +110,7 @@ void after_task_create (task_t *task ) {
     printf("\ntask_create - AFTER - [%d]", task->id);
 #endif
     task->prio = 0; // Set the default static priority to 0
-    task->prioDynamic = task->prio; // Set the dynamic priority to the static one
+    task->prioDyn = task->prio; // Set the dynamic priority to the static one
     task->running = FALSE; // Set the running flag to false
 }
 

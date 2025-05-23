@@ -34,7 +34,7 @@ typedef struct task_t
     
     // ... (outros/novos campos deve ser adicionados APOS esse comentario)
     int prio;               // prioridade estática da tarefa
-    int prioDynamic;        // prioridade dinâmica da tarefa
+    int prioDyn;        // prioridade dinâmica da tarefa
     bool running;
 } task_t ;
 
