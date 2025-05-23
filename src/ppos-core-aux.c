@@ -28,21 +28,21 @@ task_t* scheduler() {
     }
 
     // Find the previously running task
-    do {
-        if (currentTask->running == TRUE) {
-            prevRun = currentTask;
-            prevRun->running = FALSE; // Set the previous running task's running flag to false
-            highestPriorityTask = currentTask; // Set the highest priority task to the previous running task
-            break;
-        }
-        currentTask = currentTask->next;
-    } while (currentTask != startTask);
+    // do {
+    //     if (currentTask->running == TRUE) {
+    //         prevRun = currentTask;
+    //         prevRun->running = FALSE; // Set the previous running task's running flag to false
+    //         highestPriorityTask = currentTask; // Set the highest priority task to the previous running task
+    //         break;
+    //     }
+    //     currentTask = currentTask->next;
+    // } while (currentTask != startTask);
 
     currentTask = readyQueue; // Reset currentTask to the start of the queue
     do {
-        if (currentTask->running == FALSE && prevRun != NULL) {
+        // if (prevRun != NULL) {
             // Increase the priority of non-executing tasks
-            if (currentTask->id >= 2 && currentTask->id != prevRun->id) {
+            if (currentTask->id >= 2) {
                 currentTask->prioDynamic += prio_alpha;
                 // printf("\n\tIncrementing prio of task %d: Dynamic Priority: %d\n", currentTask->id, currentTask->prioDynamic);
                 if (currentTask->prioDynamic > 20) {
@@ -51,7 +51,7 @@ task_t* scheduler() {
                     currentTask->prioDynamic = -20;
                 }
             }
-        }
+        // }
         currentTask = currentTask->next;
     } while (currentTask != startTask);
 
