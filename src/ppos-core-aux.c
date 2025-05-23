@@ -15,7 +15,7 @@
 struct sigaction action ;
 struct itimerval timer ;
 
-const unsigned int max_quantum = 20;     // Quantum time in ticks
+const unsigned int max_quantum = 1;     // Quantum time in ticks
 unsigned int quantum = max_quantum;      // Quantum time in milliseconds
 unsigned int _systemTime = 0;   // Global system time in ticks
 unsigned int prio_alpha = -1;   // Priority increment value
@@ -24,7 +24,6 @@ unsigned int prio_alpha = -1;   // Priority increment value
 void tick_handler (int signum) {
     _systemTime++; // Increment the system time
     quantum--;
-    taskExec->awakeTime++; // Increment the awake time of the current task
     if (quantum == 0) {
         quantum = max_quantum; // Reset the quantum
         if (!(taskExec->systemTask)) {  // If the current task is not a system task

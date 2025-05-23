@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include "ppos.h"
 
-#define WORKLOAD 1000
+#define WORKLOAD 20000
 
 task_t Pang, Peng, Ping, Pong, Pung ;
 
@@ -60,13 +60,5 @@ int main (int argc, char *argv[])
    task_join(&Pung);
 
    printf ("main: fim\n");
-   printf("Total system time: %d\n", systime());
-   // Print awake time of each task
-   printf("Pang awake time: %d\n", Pang.awakeTime);
-   printf("Peng awake time: %d\n", Peng.awakeTime);
-   printf("Ping awake time: %d\n", Ping.awakeTime);
-   printf("Pong awake time: %d\n", Pong.awakeTime);
-   printf("Pung awake time: %d\n", Pung.awakeTime);
-   
    exit (0);
 }
