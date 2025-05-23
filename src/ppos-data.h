@@ -11,6 +11,12 @@
 #include <ucontext.h>		// biblioteca POSIX de trocas de contexto
 #include "queue.h"		// biblioteca de filas genéricas
 
+// Boolean data type from builtin int (0 = false, 1 = true)
+typedef int bool;
+#define TRUE 1
+#define FALSE 0
+
+
 // Estrutura que define um Task Control Block (TCB)
 typedef struct task_t
 {
@@ -29,6 +35,7 @@ typedef struct task_t
     // ... (outros/novos campos deve ser adicionados APOS esse comentario)
     int prio;               // prioridade estática da tarefa
     int prioDynamic;        // prioridade dinâmica da tarefa
+    bool running;
 } task_t ;
 
 // estrutura que define um semáforo
