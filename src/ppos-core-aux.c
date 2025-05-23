@@ -12,6 +12,12 @@
 unsigned int _systemTime = 0;   // Global system time in ticks
 unsigned int prio_alpha = -1;    // Priority increment value
 
+// Function to get the sign of a number
+// Returns 1 if positive, -1 if negative, and 0 if zero
+int sign(int x) {
+    return (x > 0) - (x < 0);
+}
+
 task_t* scheduler() {
     // Iterate over the ready queue and find the task with the highest priority and increment all non-executing tasks' priorities
     task_t* highestPriorityTask = NULL;
@@ -62,8 +68,8 @@ void task_setprio (task_t *task, int prio) {
         task = taskExec;
     }
 
-    prio = (prio > 20) ? 20 : prio;     // Truncate the priority to defined range
-    prio = (prio < -20) ? -20 : prio;   
+    // Truncate the priority to defined range
+    if (abs(prio) > 20) { prio = sign(prio) * 20; }
     
     task->prio = prio;
     task->prioDynamic = task->prio; // Set the dynamic priority to the static one
