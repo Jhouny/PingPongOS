@@ -19,48 +19,27 @@ task_t* scheduler() {
     task_t* startTask = readyQueue;         // Start of the queue
     task_t* prevRun = NULL;                 // Previous running task
 
-    if (!currentTask) {
-        return NULL; // If there are no tasks in the queue, return NULL
-    }
-    
     if (currentTask == taskMain) {
         return taskMain; // If the main task is in the queue, return it
     }
 
-    // Find the previously running task
-    // do {
-    //     if (currentTask->running == TRUE) {
-    //         prevRun = currentTask;
-    //         prevRun->running = FALSE; // Set the previous running task's running flag to false
-    //         highestPriorityTask = currentTask; // Set the highest priority task to the previous running task
-    //         break;
-    //     }
-    //     currentTask = currentTask->next;
-    // } while (currentTask != startTask);
-
-    currentTask = readyQueue; // Reset currentTask to the start of the queue
+    // Iterate over the ready queue and increase the dynamic priority of all tasks
     do {
-        // if (prevRun != NULL) {
-            // Increase the priority of non-executing tasks
-            if (currentTask->id >= 2) {
-                currentTask->prioDynamic += prio_alpha;
-                // printf("\n\tIncrementing prio of task %d: Dynamic Priority: %d\n", currentTask->id, currentTask->prioDynamic);
-                if (currentTask->prioDynamic > 20) {
-                    currentTask->prioDynamic = 20;
-                } else if (currentTask->prioDynamic < -20) {
-                    currentTask->prioDynamic = -20;
-                }
+        if (currentTask->id >= 2) {
+            currentTask->prioDynamic += prio_alpha;
+            // printf("\n\tIncrementing prio of task %d: Dynamic Priority: %d\n", currentTask->id, currentTask->prioDynamic);
+            if (currentTask->prioDynamic > 20) {
+                currentTask->prioDynamic = 20;
+            } else if (currentTask->prioDynamic < -20) {
+                currentTask->prioDynamic = -20;
             }
-        // }
-        currentTask = currentTask->next;
-    } while (currentTask != startTask);
+        }
 
-    currentTask = readyQueue; // Reset currentTask to the start of the queue
-    do {
         // Find the task with the highest priority (smallest prioDynamic)
-        if (highestPriorityTask == NULL || (currentTask->id != highestPriorityTask->id && currentTask->prioDynamic <= highestPriorityTask->prioDynamic)) {
+        if (highestPriorityTask == NULL || currentTask->prioDynamic <= highestPriorityTask->prioDynamic) {
             highestPriorityTask = currentTask;
         }
+
         currentTask = currentTask->next;
     } while (currentTask != startTask);
 
