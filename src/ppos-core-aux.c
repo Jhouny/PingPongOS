@@ -125,6 +125,8 @@ void after_task_create (task_t *task ) {
 #ifdef DEBUG
     printf("\ntask_create - AFTER - [%d]", task->id);
 #endif
+    task->prio = 0; // Set the default static priority to 0
+    task->prioDynamic = task->prio; // Set the dynamic priority to the static one
     task->running = FALSE; // Set the running flag to false
 }
 

@@ -1,6 +1,6 @@
 # === Project Configuration ===
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -Iinclude -g #-DDEBUG
+CFLAGS = -Wall -Wextra -std=c11 -Iinclude -g -D_POSIX_C_SOURCE=200809L #-DDEBUG
 
 # === Paths ===
 SRC_DIR = src
@@ -9,7 +9,7 @@ BIN_DIR = bin
 
 # === Files ===
 # C source files to compile
-SRCS = src/pingpong-scheduler.c \
+SRCS = src/signal.c \
 	   src/ppos-core-aux.c
 
 # Corresponding .o files
