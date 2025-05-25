@@ -37,14 +37,14 @@ typedef struct task_t {
     bool systemTask;    // indica se a tarefa é do sistema (0 = tarefa de usuário, 1 = tarefa do sistema)
 } task_t ;
 
-#define MAX_TASKS 1000
 
+// Estrutura que armazena métricas de desempenho de uma tarefa
 typedef struct {
-    unsigned int start_time;
-    unsigned int end_time;
-    unsigned int processor_time;
-    unsigned int activations;
-    unsigned int last_proc_start;
+    unsigned int start_time;      // Momento em que a tarefa foi criada/iniciada
+    unsigned int end_time;        // Momento em que a tarefa terminou
+    unsigned int processor_time;  // Tempo total de processador efetivamente usado pela tarefa
+    unsigned int activations;     // Número de vezes que a tarefa foi ativada/executada
+    unsigned int last_proc_start; // Momento da última vez que a tarefa começou a executar
 } task_metrics_t;
 
 // estrutura que define um semáforo

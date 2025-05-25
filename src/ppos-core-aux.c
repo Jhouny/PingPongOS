@@ -145,41 +145,53 @@ void before_task_create (task_t *task ) {
 #endif
 }
 
+// Função chamada após a criação de uma tarefa
+// Responsável por inicializar as métricas da nova tarefa
 void after_task_create (task_t *task ) {
 #ifdef DEBUG
     printf("\ntask_create - AFTER - [%d]", task->id);
 #endif
+    // Verifica se a tarefa é válida e está dentro dos limites do sistema
     if (task != NULL && task->id < MAX_TASKS) {
         unsigned int now = systime();
-        metrics[task->id].start_time = now;
-        metrics[task->id].processor_time = 0;
-        metrics[task->id].activations = 0;
-        metrics[task->id].last_proc_start = now;
-        metrics[task->id].end_time = 0;
+        // Inicializa todas as métricas da tarefa:
+        metrics[task->id].start_time = now;        // Registra o momento de criação
+        metrics[task->id].processor_time = 0;      // Inicializa tempo de processador como zero
+        metrics[task->id].activations = 0;         // Inicializa contador de ativações
+        metrics[task->id].last_proc_start = now;   // Registra o primeiro momento de execução
+        metrics[task->id].end_time = 0;            // Inicializa tempo de término como zero
         printf("DEBUG: métricas inicializadas para id=%d\n", task->id);
     }
     printf("task->id: %d\n", task ? task->id : -1);
 
-    // Initialize task properties
-    task->prio = 0; // Set the default static priority to 0
-    task->prioDyn = task->prio; // Set the dynamic priority to the static one
-    task->systemTask = 0; // Set the task as a user task
+    // Inicializa propriedades da tarefa
+    task->prio = 0;           // Define prioridade estática padrão como 0
+    task->prioDyn = task->prio; // Inicializa prioridade dinâmica igual à estática
+    task->systemTask = 0;     // Define como tarefa de usuário (não do sistema)
 }
 
+// Função chamada antes do encerramento de uma tarefa
+// Responsável por finalizar e exibir as métricas da tarefa
 void before_task_exit () {
 #ifdef DEBUG
     printf("\ntask_exit - BEFORE - [%d]", taskExec->id);
 #endif
+    // Verifica se a tarefa atual é válida e está dentro dos limites do sistema
     if (taskExec != NULL && taskExec->id < MAX_TASKS) {
         unsigned int now = systime();
+        
+        // Se a tarefa já estava executando, acumula o tempo final de processador
         if (metrics[taskExec->id].last_proc_start != 0)
             metrics[taskExec->id].processor_time += (now - metrics[taskExec->id].last_proc_start);
-        metrics[taskExec->id].end_time = now;
+        
+        metrics[taskExec->id].end_time = now;  // Registra o momento de término
+        
+        // Exibe relatório final com todas as métricas coletadas:
         printf("Task %d exit: execution time %u ms, processor time %u ms, %u activations\n",
             taskExec->id,
-            metrics[taskExec->id].end_time - metrics[taskExec->id].start_time,
-            metrics[taskExec->id].processor_time,
-            metrics[taskExec->id].activations);
+            metrics[taskExec->id].end_time - metrics[taskExec->id].start_time,  // Tempo total de vida
+            metrics[taskExec->id].processor_time,                               // Tempo efetivo de CPU
+            metrics[taskExec->id].activations);                                 // Número de execuções
     }
 }
 
@@ -190,18 +202,23 @@ void after_task_exit () {
     
 }
 
+// Função chamada antes da troca de contexto entre tarefas
+// Responsável por atualizar as métricas da tarefa atual e da próxima tarefa
 void before_task_switch ( task_t *task ) {
 #ifdef DEBUG
     printf("\ntask_switch - BEFORE - [%d -> %d]", taskExec->id, task->id);
 #endif
+    // Atualiza métricas da tarefa atual (que está sendo interrompida)
     if (taskExec != NULL && taskExec->id < MAX_TASKS) {
         unsigned int now = systime();
+        // Se a tarefa já estava executando, acumula o tempo de processador usado
         if (metrics[taskExec->id].last_proc_start != 0)
             metrics[taskExec->id].processor_time += (now - metrics[taskExec->id].last_proc_start);
     }
+    // Prepara métricas da próxima tarefa (que vai executar)
     if (task != NULL && task->id < MAX_TASKS) {
-        metrics[task->id].activations++;
-        metrics[task->id].last_proc_start = systime();
+        metrics[task->id].activations++;           // Incrementa contador de ativações
+        metrics[task->id].last_proc_start = systime(); // Registra início da execução
     }
 }
 

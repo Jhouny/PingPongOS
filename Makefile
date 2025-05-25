@@ -14,7 +14,7 @@ BASE_SRCS := $(SRC_DIR)/ppos-core-aux.c
 # === Source sets for each target ===
 SCHEDULER_SRCS := $(BASE_SRCS) $(SRC_DIR)/pingpong-scheduler.c
 PREEMPCAO_SRCS := $(BASE_SRCS) $(SRC_DIR)/pingpong-preempcao.c
-CONTAB_SRCS    := $(BASE_SRCS) $(SRC_DIR)/pingpong-contab.c
+CONTAB_SRCS    := $(BASE_SRCS) $(SRC_DIR)/pingpong-contab-prio.c
 
 # === Object files for each target ===
 SCHEDULER_OBJS := $(SCHEDULER_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
