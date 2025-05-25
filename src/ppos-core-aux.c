@@ -145,17 +145,10 @@ void before_task_create (task_t *task ) {
 #endif
 }
 
-// Função auxiliar para logar ponteiros de uma task
-void log_task_ptrs(const char* label, task_t* t) {
-    if (t == NULL) {
-        printf("%s: ponteiro da task é NULL\n", label);
-        return;
-    }
-}
-
 void after_task_create (task_t *task ) {
-    printf("DEBUG: Entrou em after_task_create\n");
-    log_task_ptrs("after_task_create - task", task);
+#ifdef DEBUG
+    printf("\ntask_create - AFTER - [%d]", task->id);
+#endif
     if (task != NULL && task->id < MAX_TASKS) {
         unsigned int now = systime();
         metrics[task->id].start_time = now;
@@ -165,19 +158,18 @@ void after_task_create (task_t *task ) {
         metrics[task->id].end_time = 0;
         printf("DEBUG: métricas inicializadas para id=%d\n", task->id);
     }
-    printf("after_task_create\n");
     printf("task->id: %d\n", task ? task->id : -1);
-#ifdef DEBUG
-    printf("\ntask_create - AFTER - [%d]", task->id);
-#endif
+
+    // Initialize task properties
     task->prio = 0; // Set the default static priority to 0
     task->prioDyn = task->prio; // Set the dynamic priority to the static one
     task->systemTask = 0; // Set the task as a user task
 }
 
 void before_task_exit () {
-    printf("DEBUG: Entrou em before_task_exit\n");
-    log_task_ptrs("before_task_exit - taskExec", taskExec);
+#ifdef DEBUG
+    printf("\ntask_exit - BEFORE - [%d]", taskExec->id);
+#endif
     if (taskExec != NULL && taskExec->id < MAX_TASKS) {
         unsigned int now = systime();
         if (metrics[taskExec->id].last_proc_start != 0)
@@ -189,11 +181,6 @@ void before_task_exit () {
             metrics[taskExec->id].processor_time,
             metrics[taskExec->id].activations);
     }
-    printf("before_task_exit\n");
-    printf("taskExec->id: %d\n", taskExec ? taskExec->id : -1);
-#ifdef DEBUG
-    printf("\ntask_exit - BEFORE - [%d]", taskExec->id);
-#endif
 }
 
 void after_task_exit () {
@@ -204,9 +191,9 @@ void after_task_exit () {
 }
 
 void before_task_switch ( task_t *task ) {
-    printf("DEBUG: Entrou em before_task_switch\n");
-    log_task_ptrs("before_task_switch - taskExec", taskExec);
-    log_task_ptrs("before_task_switch - task", task);
+#ifdef DEBUG
+    printf("\ntask_switch - BEFORE - [%d -> %d]", taskExec->id, task->id);
+#endif
     if (taskExec != NULL && taskExec->id < MAX_TASKS) {
         unsigned int now = systime();
         if (metrics[taskExec->id].last_proc_start != 0)
@@ -216,13 +203,6 @@ void before_task_switch ( task_t *task ) {
         metrics[task->id].activations++;
         metrics[task->id].last_proc_start = systime();
     }
-    printf("DEBUG: Saindo de before_task_switch\n");
-    printf("before_task_switch\n");
-    printf("taskExec->id: %d\n", taskExec ? taskExec->id : -1);
-#ifdef DEBUG
-    printf("\ntask_switch - BEFORE - [%d -> %d]", taskExec->id, task->id);
-#endif
-    
 }
 
 void after_task_switch ( task_t *task ) {

@@ -1,43 +1,63 @@
 # === Project Configuration ===
-CC = gcc
+CC := gcc
 CFLAGS = -Wall -Wextra -std=c11 -Iinclude -g -D_POSIX_C_SOURCE=200809L #-DDEBUG
 
 # === Paths ===
-SRC_DIR = src
-OBJ_DIR = build
-BIN_DIR = bin
+SRC_DIR := src
+OBJ_DIR := build
+BIN_DIR := bin
 
 # === Files ===
 # C source files to compile
-SRCS = src/pingpong-preempcao.c \
-	   src/ppos-core-aux.c
+BASE_SRCS := $(SRC_DIR)/ppos-core-aux.c
 
-# Corresponding .o files
-OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+# === Source sets for each target ===
+SCHEDULER_SRCS := $(BASE_SRCS) $(SRC_DIR)/pingpong-scheduler.c
+PREEMPCAO_SRCS := $(BASE_SRCS) $(SRC_DIR)/pingpong-preempcao.c
+CONTAB_SRCS    := $(BASE_SRCS) $(SRC_DIR)/pingpong-contab.c
+
+# === Object files for each target ===
+SCHEDULER_OBJS := $(SCHEDULER_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+PREEMPCAO_OBJS := $(PREEMPCAO_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+CONTAB_OBJS    := $(CONTAB_SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+
+# === Binaries ===
+SCHEDULER_BIN := $(BIN_DIR)/scheduler
+PREEMPCAO_BIN := $(BIN_DIR)/preempcao
+CONTAB_BIN    := $(BIN_DIR)/contab
 
 # Precompiled object files (never touched)
-PRECOMPILED_OBJS = obj/ppos-all.o \
+PRECOMPILED_OBJS := obj/ppos-all.o \
 				   obj/queue.o
 
-# Output executable
-TARGET = $(BIN_DIR)/main
-
 # === Rules ===
-.PHONY: all clean
+.PHONY: all clean scheduler preempcao contab
 
-all: $(TARGET)
+# === Main build entry ===
+all: scheduler preempcao contab
 
-# Link step
-$(TARGET): $(OBJS) $(PRECOMPILED_OBJS) Makefile
+scheduler: $(SCHEDULER_BIN)
+preempcao: $(PREEMPCAO_BIN)
+contab: $(CONTAB_BIN)
+
+# === Build binaries ===
+$(SCHEDULER_BIN): $(SCHEDULER_OBJS) $(PRECOMPILED_OBJS)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(PRECOMPILED_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^
+	
+$(PREEMPCAO_BIN): $(PREEMPCAO_OBJS) $(PRECOMPILED_OBJS)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
 
-# Compile .c -> .o
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c Makefile
+$(CONTAB_BIN): $(CONTAB_OBJS) $(PRECOMPILED_OBJS)
+	@mkdir -p $(BIN_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
+
+# === Compile .c -> .o ===
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Clean compiled (but NOT precompiled) files
+# === Clean rule ===
 clean:
-	rm -f $(OBJ_DIR)/*.o
-	rm -f $(TARGET)
+	rm -rf $(OBJ_DIR)/*.o $(BIN_DIR)/*
