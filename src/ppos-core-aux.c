@@ -12,10 +12,10 @@
 #include <signal.h>
 #include <sys/time.h>
 
-struct sigaction action ;
-struct itimerval timer ;
+struct sigaction action;
+struct itimerval timer;
 
-const unsigned int max_quantum = 1;     // Quantum time in ticks
+const unsigned int max_quantum = 20;     // Maximum Quantum for the tasks
 unsigned int quantum = max_quantum;      // Quantum time in milliseconds
 unsigned int _systemTime = 0;   // Global system time in ticks
 unsigned int prio_alpha = -1;   // Priority increment value
@@ -160,9 +160,7 @@ void after_task_create (task_t *task ) {
         metrics[task->id].activations = 0;         // Inicializa contador de ativações
         metrics[task->id].last_proc_start = now;   // Registra o primeiro momento de execução
         metrics[task->id].end_time = 0;            // Inicializa tempo de término como zero
-        printf("DEBUG: métricas inicializadas para id=%d\n", task->id);
     }
-    printf("task->id: %d\n", task ? task->id : -1);
 
     // Inicializa propriedades da tarefa
     task->prio = 0;           // Define prioridade estática padrão como 0
@@ -199,7 +197,6 @@ void after_task_exit () {
 #ifdef DEBUG
     printf("\ntask_exit - AFTER- [%d]", taskExec->id);
 #endif
-    
 }
 
 // Função chamada antes da troca de contexto entre tarefas
