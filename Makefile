@@ -1,6 +1,6 @@
 # === Project Configuration ===
 CC = gcc
-CFLAGS = -Wall -Wextra -std=c11 -Iinclude -g #-DDEBUG
+CFLAGS = -Wall -Wextra -std=c11 -Iinclude -g -D_POSIX_C_SOURCE=200809L #-DDEBUG
 
 # === Paths ===
 SRC_DIR = src

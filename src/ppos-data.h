@@ -11,22 +11,30 @@
 #include <ucontext.h>		// biblioteca POSIX de trocas de contexto
 #include "queue.h"		// biblioteca de filas genéricas
 
+// Boolean data type from builtin int (0 = false, 1 = true)
+typedef int bool;
+#define TRUE 1
+#define FALSE 0
+
+
 // Estrutura que define um Task Control Block (TCB)
-typedef struct task_t
-{
-   struct task_t *prev, *next ;		// ponteiros para usar em filas
-   int id ;				// identificador da tarefa
-   ucontext_t context ;			// contexto armazenado da tarefa
-   unsigned char state;  // indica o estado de uma tarefa (ver defines no final do arquivo ppos.h): 
-                          // n - nova, r - pronta, x - executando, s - suspensa, e - terminada
-   struct task_t* queue;
-   struct task_t* joinQueue;
-   int exitCode;
-   unsigned int awakeTime; // used to store the time when it should be waked up
-
-   void* custom_data; // internal data - do not modify!
-
-   // ... (outros/novos campos deve ser adicionados APOS esse comentario)
+typedef struct task_t {
+    struct task_t *prev, *next ;	// ponteiros para usar em filas
+    int id ;				        // identificador da tarefa
+    ucontext_t context ;            // contexto armazenado da tarefa
+    unsigned char state;            // indica o estado de uma tarefa (ver defines no final do arquivo ppos.h): 
+                                    // n - nova, r - pronta, x - executando, s - suspensa, e - terminada
+    struct task_t* queue;
+    struct task_t* joinQueue;
+    int exitCode;
+    unsigned int awakeTime; // used to store the time when it should be waked up
+    
+    void* custom_data; // internal data - do not modify!
+    
+    // ... (outros/novos campos deve ser adicionados APOS esse comentario)
+    int prio;           // prioridade estática da tarefa
+    int prioDyn;        // prioridade dinâmica da tarefa
+    bool systemTask;    // indica se a tarefa é do sistema (0 = tarefa de usuário, 1 = tarefa do sistema)
 } task_t ;
 
 #define MAX_TASKS 1000
@@ -43,7 +51,7 @@ typedef struct {
 typedef struct {
     struct task_t *queue;
     int value;
-
+    
     unsigned char active;
 } semaphore_t ;
 
@@ -51,7 +59,7 @@ typedef struct {
 typedef struct {
     struct task_t *queue;
     unsigned char value;
-
+    
     unsigned char active;
 } mutex_t ;
 
